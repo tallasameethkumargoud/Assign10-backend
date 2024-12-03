@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { login } from "../slices/authSlice";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -6,10 +8,14 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Add loading state
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError(""); // Reset error message
+    setLoading(true); // Set loading state
 
     try {
       const response = await axios.post("http://localhost:5001/user/login", {
@@ -17,118 +23,72 @@ const Login = () => {
         password,
       });
 
-      const { token } = response.data;
+      const { token, type } = response.data;
 
-      // Save token to localStorage
-      localStorage.setItem("authToken", token);
+      // Dispatch login action
+      dispatch(login({ authToken: token, userType: type }));
 
-      // Redirect to the Home page
-      navigate("/home");
+      // Redirect based on role
+      navigate(type === "admin" ? "/admin" : "/home");
     } catch (err) {
-      setError("Invalid email or password.");
+      // Handle errors gracefully
+      setError(err.response?.data?.message || "Invalid email or password.");
+    } finally {
+      setLoading(false); // Reset loading state
     }
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        backgroundColor: "#f0f4f8",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "400px",
-          background: "#fff",
-          padding: "30px",
-          borderRadius: "10px",
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-          textAlign: "center",
-        }}
-      >
-        <h2 style={{ marginBottom: "20px", color: "#333" }}>Login</h2>
-        <form onSubmit={handleLogin} style={{ textAlign: "center" }}>
-          <div style={{ marginBottom: "20px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontSize: "14px",
-                color: "#555",
-              }}
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: "100%",
-                padding: "10px",
-                fontSize: "16px",
-                borderRadius: "5px",
-                border: "1px solid #ccc",
-                outline: "none",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-          <div style={{ marginBottom: "20px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontSize: "14px",
-                color: "#555",
-              }}
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                width: "100%",
-                padding: "10px",
-                fontSize: "16px",
-                borderRadius: "5px",
-                border: "1px solid #ccc",
-                outline: "none",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              padding: "10px",
-              fontSize: "16px",
-              borderRadius: "5px",
-              border: "none",
-              backgroundColor: "#007bff",
-              color: "#fff",
-              cursor: "pointer",
-            }}
-          >
-            Login
-          </button>
-        </form>
+    <div style={{ maxWidth: "400px", margin: "50px auto", textAlign: "center", fontFamily: "Arial, sans-serif" }}>
+      <h2>Login</h2>
+      <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          style={{
+            padding: "10px",
+            borderRadius: "5px",
+            border: "1px solid #ccc",
+            fontSize: "16px",
+          }}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          style={{
+            padding: "10px",
+            borderRadius: "5px",
+            border: "1px solid #ccc",
+            fontSize: "16px",
+          }}
+        />
+        <button
+          type="submit"
+          disabled={loading} // Disable button while loading
+          style={{
+            padding: "10px",
+            backgroundColor: "#1976d2",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+            fontSize: "16px",
+            cursor: loading ? "not-allowed" : "pointer",
+          }}
+        >
+          {loading ? "Logging in..." : "Login"}
+        </button>
         {error && (
-          <p style={{ color: "red", marginTop: "15px", fontSize: "14px" }}>
+          <p style={{ color: "red", marginTop: "10px", fontSize: "14px" }}>
             {error}
           </p>
         )}
-      </div>
+      </form>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer"; // Import Footer component
 import ProtectedRoute from "./utils/ProtectedRoute";
 import Login from "./components/Login";
 import Home from "./pages/Home";
@@ -8,7 +9,8 @@ import About from "./pages/About";
 import JobListings from "./pages/JobListings";
 import Contact from "./pages/Contact";
 import CompanyShowcase from "./pages/CompanyShowcase";
-
+import AdminPage from "./pages/AdminPage";
+import AddJob from "./pages/AddJob";
 
 const App = () => {
   return (
@@ -27,7 +29,7 @@ const App = () => {
         <Route
           path="/about"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["employee"]}>
               <About />
             </ProtectedRoute>
           }
@@ -35,7 +37,7 @@ const App = () => {
         <Route
           path="/job-listings"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["employee"]}>
               <JobListings />
             </ProtectedRoute>
           }
@@ -43,21 +45,38 @@ const App = () => {
         <Route
           path="/contact"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["employee"]}>
               <Contact />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/createjobpost"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AddJob />
             </ProtectedRoute>
           }
         />
         <Route
           path="/company-showcase"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["employee"]}>
               <CompanyShowcase />
             </ProtectedRoute>
           }
         />
         <Route path="*" element={<Login />} />
       </Routes>
+      <Footer /> {/* Add Footer here */}
     </Router>
   );
 };
